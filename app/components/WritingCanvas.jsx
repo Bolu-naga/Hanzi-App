@@ -3,47 +3,47 @@
 import { useRef, useEffect, useState } from 'react';
 import HanziWriter from 'hanzi-writer';
 
-// Tambahkan prop "level" (1 = Mudah, 2 = Sedang, 3 = Sulit/Mandiri)
 export default function WritingCanvas({ character = '我', level = 1, onFinishCharacter }) {
   const containerRef = useRef(null);
   const writerRef = useRef(null);
   const [message, setMessage] = useState('');
-  const [status, setStatus] = useState('neutral');
+  const [status, setStatus] = useState('neutral'); // neutral, success, error
 
   useEffect(() => {
     if (!containerRef.current) return;
     containerRef.current.innerHTML = '';
 
-    // LOGIKA LEVEL KESULITAN
     let showOutline = true;
-    let hintConfig = 1; // Default: Muncul hint setelah 1x salah
+    let hintConfig = 1; 
 
     if (level === 1) {
-      // Level 1: Garis bantu terlihat jelas, hint langsung muncul kalau salah
       showOutline = true;
       hintConfig = 1;
-      setMessage('Level 1: Ikuti garis bayangan.');
+      setMessage('🌟 Ikuti garis bayangannya ya!');
     } else if (level === 2) {
-      // Level 2: Garis bantu terlihat, tapi hint baru muncul kalau salah 3x (menguji ingatan)
       showOutline = true;
       hintConfig = 3;
-      setMessage('Level 2: Coba ingat urutannya.');
+      setMessage('🤔 Coba ingat urutan garisnya...');
     } else if (level === 3) {
-      // Level 3: Kotak kosong! Tidak ada garis bantu, tidak ada hint otomatis. Murni hafalan.
       showOutline = false;
       hintConfig = false; 
-      setMessage('Level 3: Ujian Mandiri. Tulis tanpa bantuan!');
+      setMessage('💪 Hebat! Sekarang tulis sendiri tanpa bantuan!');
     }
 
+    // RESPONSIVE FIX: Mendapatkan ukuran kontainer induk
+    const parentWidth = containerRef.current.parentElement.clientWidth;
+    // Gunakan ukuran parent tapi batasi maksimal 300px agar tidak terlalu besar di tablet
+    const canvasSize = Math.min(parentWidth - 16, 300); 
+
     writerRef.current = HanziWriter.create(containerRef.current, character, {
-      width: 300,
-      height: 300,
-      padding: 20,
+      width: canvasSize,
+      height: canvasSize,
+      padding: 15, // Padding sedikit dikurangi agar Hanzi lebih besar
       showOutline: showOutline,
       strokeAnimationSpeed: 2,
       delayBetweenStrokes: 500,
-      strokeColor: '#334155', // Warna tinta
-      outlineColor: '#cbd5e1', // Warna bayangan (jika showOutline true)
+      strokeColor: '#0f172a', // Tinta Hitam Pekat
+      outlineColor: '#e2e8f0', // Bayangan Abu-abu Terang
       showHintAfterMisses: hintConfig,
     });
 
@@ -57,7 +57,7 @@ export default function WritingCanvas({ character = '我', level = 1, onFinishCh
       },
       onComplete: () => {
         setStatus('success');
-        setMessage('Sempurna!');
+        setMessage('🎉 Sempurna! Kamu pintar!');
         if (onFinishCharacter) onFinishCharacter();
       }
     });
@@ -65,7 +65,7 @@ export default function WritingCanvas({ character = '我', level = 1, onFinishCh
     return () => {
       if (containerRef.current) containerRef.current.innerHTML = '';
     };
-  }, [character, level]); // Effect ini akan dipanggil ulang setiap kali karakter ATAU level berubah
+  }, [character, level]);
 
   const resetQuiz = () => {
     if (writerRef.current) {
@@ -74,49 +74,53 @@ export default function WritingCanvas({ character = '我', level = 1, onFinishCh
     }
   };
 
+  // Warna border dinamis ceria
   const borderColor = 
-    status === 'error' ? 'border-red-500 shadow-red-200' :
-    status === 'success' ? 'border-green-500 shadow-green-200' :
-    'border-slate-300 shadow-sm';
+    status === 'error' ? 'border-red-400 shadow-red-100' :
+    status === 'success' ? 'border-emerald-400 shadow-emerald-100' :
+    'border-slate-200 shadow-inner';
+
+  // Warna label level ceria
+  const levelBadgeColor = 
+    level === 1 ? 'bg-sky-100 text-sky-700 border-sky-200' : 
+    level === 2 ? 'bg-amber-100 text-amber-700 border-amber-200' : 
+    'bg-purple-100 text-purple-700 border-purple-200';
 
   return (
-    <div className="flex flex-col items-center w-full max-w-md mx-auto gap-4">
+    <div className="flex flex-col items-center w-full max-w-sm mx-auto gap-3">
       
-      {/* Label Level Kesulitan */}
-      <div className="flex items-center gap-2 mb-2">
-        <span className={`px-3 py-1 text-xs font-bold rounded-full ${level === 1 ? 'bg-blue-100 text-blue-600' : level === 2 ? 'bg-orange-100 text-orange-600' : 'bg-purple-100 text-purple-600'}`}>
-          Tahap {level} / 3
-        </span>
+      {/* Label Level Berbentuk Pil Ceria */}
+      <div className={`px-4 py-1.5 text-xs font-extrabold rounded-full border-2 ${levelBadgeColor} shadow-sm tracking-wide`}>
+        TAHAP {level} / 3
       </div>
 
-      <div className={`text-sm font-bold transition-colors duration-300 ${status === 'error' ? 'text-red-500' : 'text-slate-600'} h-6 text-center`}>
+      {/* Pesan Feedback dengan Warna Menarik */}
+      <div className={`text-sm font-bold transition-colors duration-300 h-6 text-center ${status === 'error' ? 'text-red-500' : 'text-slate-600'}`}>
         {message}
       </div>
 
-      {/* Kanvas dengan Background TIANZI GE (Kertas Latihan Mandarin) */}
+      {/* Kanvas dengan Background Kertas Mandarin (Grid Merah Lembut) */}
+      {/* RESPONSIVE FIX: w-full dan max-w */}
       <div 
-        className={`relative bg-white border-4 rounded-xl overflow-hidden transition-all duration-300 ${borderColor} ${status === 'error' ? 'animate-pulse' : ''}`}
-        style={{ touchAction: 'none', width: '300px', height: '300px' }} 
+        className={`relative bg-white border-4 rounded-3xl overflow-hidden transition-all duration-300 shadow-xl w-full aspect-square max-w-75px ${borderColor} ${status === 'error' ? 'animate-pulse' : ''}`}
+        style={{ touchAction: 'none' }} 
       >
-        {/* Desain Garis Putus-putus ala Kertas Mandarin */}
-        <div className="absolute inset-0 pointer-events-none opacity-40">
-           {/* Garis Horizontal Tengah */}
-           <div className="absolute top-1/2 left-0 w-full border-t-2 border-dashed border-red-300"></div>
-           {/* Garis Vertikal Tengah */}
-           <div className="absolute left-1/2 top-0 h-full border-l-2 border-dashed border-red-300"></div>
-           {/* Opsional: Border merah kotak (bisa diaktifkan jika ingin gaya buku tulis banget) */}
-           <div className="absolute inset-0 border-2 border-red-200"></div>
+        {/* Desain Garis Putus-putus ala Kertas Mandarin (Warna dibuat lebih lembut) */}
+        <div className="absolute inset-0 pointer-events-none opacity-30">
+           <div className="absolute top-1/2 left-0 w-full border-t-2 border-dashed border-red-200"></div>
+           <div className="absolute left-1/2 top-0 h-full border-l-2 border-dashed border-red-200"></div>
+           <div className="absolute inset-0 border-2 border-red-100 rounded-2xl"></div>
         </div>
 
         {/* Elemen HanziWriter di atas grid */}
-        <div ref={containerRef} className="absolute inset-0 cursor-crosshair z-10" />
+        <div ref={containerRef} className="absolute inset-0 cursor-crosshair z-10 flex items-center justify-center" />
       </div>
 
       <button
         onClick={resetQuiz}
-        className="px-6 py-2 text-sm font-semibold text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 active:scale-95 transition-all mt-2"
+        className="px-5 py-2 text-xs font-bold text-slate-500 bg-slate-100 rounded-full hover:bg-slate-200 active:scale-95 transition-all mt-1 border border-slate-200"
       >
-        Hapus & Ulangi Level Ini
+        🔄 Hapus & Ulangi
       </button>
     </div>
   );

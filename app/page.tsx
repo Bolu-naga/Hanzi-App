@@ -9,14 +9,9 @@ export default function TeacherDashboard() {
 
   const handleGenerate = () => {
     if (!inputChars.trim()) return;
-    
-    // Menghilangkan spasi dan karakter non-hanzi (opsional, tapi bagus untuk keamanan)
     const cleanChars = inputChars.replace(/\s/g, '');
-    
-    // Membuat URL (dalam mode produksi, ini akan otomatis menjadi domain aslimu)
     const baseUrl = window.location.origin;
     const link = `${baseUrl}/learn?chars=${encodeURIComponent(cleanChars)}`;
-    
     setGeneratedLink(link);
   };
 
@@ -26,58 +21,74 @@ export default function TeacherDashboard() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-2xl shadow-sm max-w-md w-full border border-slate-200">
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">Dashboard Guru</h1>
-        <p className="text-slate-500 mb-6 text-sm">
-          Masukkan Hanzi yang ingin diajarkan hari ini. Sistem akan membuatkan link khusus untuk murid.
-        </p>
+    // Background Ceria (Sky Blue)
+    <main className="min-h-screen bg-sky-50 flex flex-col items-center justify-center p-4 sm:p-6">
+      
+      {/* Kartu Utama dengan Sudut Sangat Bulat dan Bayangan Lembut */}
+      <div className="bg-white p-8 sm:p-10 rounded-3xl shadow-xl shadow-sky-100 max-w-lg w-full border-4 border-white relative overflow-hidden">
+        
+        {/* Dekorasi Latar Belakang Lingkaran Pastel */}
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-yellow-100 rounded-full opacity-60"></div>
+        <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-pink-100 rounded-full opacity-60"></div>
 
-        <div className="flex flex-col gap-4">
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Karakter Hanzi (Tanpa spasi)
-            </label>
-            <input 
-              type="text" 
-              value={inputChars}
-              onChange={(e) => setInputChars(e.target.value)}
-              placeholder="Contoh: 你好吗"
-              className="w-full p-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-2xl tracking-widest"
-            />
+        <div className="relative z-10">
+          <div className="text-center mb-8">
+            <span className="text-5xl mb-3 block">👩‍🏫</span>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+              Dasbor <span className="text-sky-600">Guru Les</span>
+            </h1>
+            <p className="text-slate-600 mt-2 text-base">
+              Ketik Hanzi untuk tugas hari ini, lalu bagikan link-nya ke murid.
+            </p>
           </div>
 
-          <button 
-            onClick={handleGenerate}
-            className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors"
-          >
-            Buat Tugas (Generate Link)
-          </button>
-
-          {generatedLink && (
-            <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
-              <p className="text-xs font-bold text-slate-500 mb-2 uppercase">Link Pelajaran Murid:</p>
-              <div className="flex items-center gap-2">
-                <input 
-                  type="text" 
-                  readOnly 
-                  value={generatedLink}
-                  className="w-full p-2 bg-white border border-slate-300 rounded text-sm text-slate-600"
-                />
-                <button 
-                  onClick={copyToClipboard}
-                  className="px-4 py-2 bg-slate-800 text-white rounded text-sm font-semibold hover:bg-slate-700"
-                >
-                  Copy
-                </button>
-              </div>
-              <div className="mt-4 text-center">
-                 <Link href={`/learn?chars=${encodeURIComponent(inputChars.replace(/\s/g, ''))}`} className="text-blue-500 text-sm font-semibold hover:underline">
-                    Coba Tes Link Sendiri &rarr;
-                 </Link>
-              </div>
+          <div className="flex flex-col gap-6">
+            <div>
+              <label className="block text-sm font-bold text-slate-800 mb-2 ml-1">
+                Karakter Hanzi (Contoh: 你好吗)
+              </label>
+              {/* INPUT FIXED: Lebih Bold, Tidak Transparan, Teks Gelap */}
+              <input 
+                type="text" 
+                value={inputChars}
+                onChange={(e) => setInputChars(e.target.value)}
+                placeholder="Ketuk di sini untuk menulis..."
+                className="w-full p-4 sm:p-5 bg-white text-slate-950 font-bold border-4 border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-sky-200 text-3xl tracking-widest shadow-inner placeholder:text-slate-400 placeholder:text-lg placeholder:tracking-normal transition-all"
+              />
             </div>
-          )}
+
+            <button 
+              onClick={handleGenerate}
+              className="w-full py-4 bg-sky-500 text-white rounded-2xl font-bold text-lg hover:bg-sky-600 transition-all shadow-[0_5px_0_rgb(2,132,199)] hover:translate-y-0.5 hover:shadow-[0_3px_0_rgb(2,132,199)] active:translate-y-1 active:shadow-none"
+            >
+              🎉 BUAT TUGAS MURID
+            </button>
+
+            {generatedLink && (
+              <div className="mt-6 p-6 bg-slate-50 rounded-2xl border-2 border-slate-100 animate-fade-in">
+                <p className="text-xs font-bold text-slate-500 mb-2 ml-1 uppercase tracking-wider">Link Pelajaran (Bagikan ini):</p>
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <input 
+                    type="text" 
+                    readOnly 
+                    value={generatedLink}
+                    className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 shadow-inner"
+                  />
+                  <button 
+                    onClick={copyToClipboard}
+                    className="w-full sm:w-auto px-6 py-3 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-700 whitespace-nowrap active:scale-95 transition-all"
+                  >
+                    📋 Copy
+                  </button>
+                </div>
+                <div className="mt-5 text-center bg-white p-3 rounded-lg border border-slate-100">
+                   <Link href={`/learn?chars=${encodeURIComponent(inputChars.replace(/\s/g, ''))}`} className="text-sky-600 text-sm font-semibold hover:underline">
+                      Coba Tes Tampilan Murid &rarr;
+                   </Link>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </main>
