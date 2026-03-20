@@ -1,94 +1,54 @@
-'use client';
+import { loginStudent } from './actions';
 
-import { useState } from 'react';
-import Link from 'next/link';
+// Definisi tipe supaya TypeScript tidak komplain "implicitly any"
+interface LoginPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
 
-export default function TeacherDashboard() {
-  const [inputChars, setInputChars] = useState('');
-  const [generatedLink, setGeneratedLink] = useState('');
-
-  const handleGenerate = () => {
-    if (!inputChars.trim()) return;
-    const cleanChars = inputChars.replace(/\s/g, '');
-    const baseUrl = window.location.origin;
-    const link = `${baseUrl}/learn?chars=${encodeURIComponent(cleanChars)}`;
-    setGeneratedLink(link);
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedLink);
-    alert('Link berhasil di-copy! Bagikan ke murid.');
-  };
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  // Tunggu searchParams karena di Next.js terbaru ini adalah Promise
+  const params = await searchParams;
+  const error = params.error;
 
   return (
-    // Background Ceria (Sky Blue)
-    <main className="min-h-screen bg-sky-50 flex flex-col items-center justify-center p-4 sm:p-6">
-      
-      {/* Kartu Utama dengan Sudut Sangat Bulat dan Bayangan Lembut */}
-      <div className="bg-white p-8 sm:p-10 rounded-3xl shadow-xl shadow-sky-100 max-w-lg w-full border-4 border-white relative overflow-hidden">
+    <main className="min-h-screen bg-sky-50 flex flex-col items-center justify-center p-6 font-sans">
+      <div className="bg-white p-10 rounded-[40px] shadow-2xl shadow-sky-200/50 max-w-md w-full border-8 border-white text-center relative overflow-hidden">
         
-        {/* Dekorasi Latar Belakang Lingkaran Pastel */}
-        <div className="absolute -top-10 -right-10 w-32 h-32 bg-yellow-100 rounded-full opacity-60"></div>
-        <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-pink-100 rounded-full opacity-60"></div>
-
         <div className="relative z-10">
-          <div className="text-center mb-8">
-            <span className="text-5xl mb-3 block">👩‍🏫</span>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              Dasbor <span className="text-sky-600">Guru Les</span>
-            </h1>
-            <p className="text-slate-600 mt-2 text-base">
-              Ketik Hanzi untuk tugas hari ini, lalu bagikan link-nya ke murid.
-            </p>
-          </div>
+          <span className="text-7xl mb-6 block animate-bounce">🐼</span>
+          <h1 className="text-4xl font-black text-slate-900 mb-2 tracking-tight">Halo!</h1>
+          <p className="text-slate-500 mb-8 font-medium">Siap belajar menulis Hanzi hari ini?</p>
 
-          <div className="flex flex-col gap-6">
-            <div>
-              <label className="block text-sm font-bold text-slate-800 mb-2 ml-1">
-                Karakter Hanzi (Contoh: 你好吗)
-              </label>
-              {/* INPUT FIXED: Lebih Bold, Tidak Transparan, Teks Gelap */}
-              <input 
-                type="text" 
-                value={inputChars}
-                onChange={(e) => setInputChars(e.target.value)}
-                placeholder="Ketuk di sini untuk menulis..."
-                className="w-full p-4 sm:p-5 bg-white text-slate-950 font-bold border-4 border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-sky-200 text-3xl tracking-widest shadow-inner placeholder:text-slate-400 placeholder:text-lg placeholder:tracking-normal transition-all"
-              />
+          {/* Menampilkan pesan error jika ada di URL */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl font-bold text-sm border-2 border-red-100 animate-shake">
+              {error === 'wrong' ? '❌ Kode akses salah!' : '⚠️ Isi nama dan kode ya!'}
             </div>
+          )}
 
+          <form action={loginStudent} className="flex flex-col gap-4">
+            <input 
+              name="studentName"
+              type="text" 
+              placeholder="Tulis Namamu..."
+              required
+              className="w-full p-5 bg-slate-50 rounded-3xl border-4 border-transparent focus:border-sky-400 focus:bg-white outline-none font-bold text-center text-xl transition-all placeholder:text-slate-300 text-slate-900"
+            />
+            <input 
+              name="accessCode"
+              type="text" 
+              placeholder="Kode Akses..."
+              required
+              className="w-full p-5 bg-slate-50 rounded-3xl border-4 border-transparent focus:border-sky-400 focus:bg-white outline-none font-bold text-center text-xl tracking-[0.2em] transition-all placeholder:text-slate-300 text-slate-900"
+            />
+            
             <button 
-              onClick={handleGenerate}
-              className="w-full py-4 bg-sky-500 text-white rounded-2xl font-bold text-lg hover:bg-sky-600 transition-all shadow-[0_5px_0_rgb(2,132,199)] hover:translate-y-0.5 hover:shadow-[0_3px_0_rgb(2,132,199)] active:translate-y-1 active:shadow-none"
+              type="submit"
+              className="w-full py-5 bg-sky-500 text-white rounded-3xl font-black text-2xl hover:bg-sky-600 shadow-[0_8px_0_rgb(2,132,199)] active:translate-y-2 active:shadow-none transition-all mt-4"
             >
-              🎉 BUAT TUGAS MURID
+              MASUK &rarr;
             </button>
-
-            {generatedLink && (
-              <div className="mt-6 p-6 bg-slate-50 rounded-2xl border-2 border-slate-100 animate-fade-in">
-                <p className="text-xs font-bold text-slate-500 mb-2 ml-1 uppercase tracking-wider">Link Pelajaran (Bagikan ini):</p>
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <input 
-                    type="text" 
-                    readOnly 
-                    value={generatedLink}
-                    className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 shadow-inner"
-                  />
-                  <button 
-                    onClick={copyToClipboard}
-                    className="w-full sm:w-auto px-6 py-3 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-700 whitespace-nowrap active:scale-95 transition-all"
-                  >
-                    📋 Copy
-                  </button>
-                </div>
-                <div className="mt-5 text-center bg-white p-3 rounded-lg border border-slate-100">
-                   <Link href={`/learn?chars=${encodeURIComponent(inputChars.replace(/\s/g, ''))}`} className="text-sky-600 text-sm font-semibold hover:underline">
-                      Coba Tes Tampilan Murid &rarr;
-                   </Link>
-                </div>
-              </div>
-            )}
-          </div>
+          </form>
         </div>
       </div>
     </main>
