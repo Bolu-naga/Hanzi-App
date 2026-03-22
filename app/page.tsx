@@ -7,7 +7,6 @@ interface LoginPageProps {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const error = params.error;
-  // Default role yang tampil duluan adalah murid
   const activeRole = params.role === 'teacher' ? 'teacher' : 'student';
 
   return (
@@ -25,20 +24,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             {activeRole === 'teacher' ? 'Masuk untuk kelola kelas.' : 'Siap belajar Hanzi hari ini?'}
           </p>
 
-          {/* Toggle Role (Guru / Murid) Menggunakan Link URL */}
           <div className="flex bg-slate-100 p-1 rounded-2xl mb-8 relative">
-            <a 
-              href="/?role=student" 
-              className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all z-10 ${activeRole === 'student' ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              Murid
-            </a>
-            <a 
-              href="/?role=teacher" 
-              className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all z-10 ${activeRole === 'teacher' ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              Guru (Laoshi)
-            </a>
+            <a href="/?role=student" className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all z-10 ${activeTab(activeRole, 'student')}`}>Murid</a>
+            <a href="/?role=teacher" className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all z-10 ${activeTab(activeRole, 'teacher')}`}>Guru (Laoshi)</a>
           </div>
 
           {error && (
@@ -47,8 +35,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </div>
           )}
 
-          <form action={loginUser} className="flex flex-col gap-4">
-            {/* Input tersembunyi untuk ngirim status role ke Server Action */}
+          {/* FORM DENGAN AUTOCOMPLETE DIMATIKAN */}
+          <form action={loginUser} className="flex flex-col gap-4" autoComplete="off">
             <input type="hidden" name="role" value={activeRole} />
 
             <input 
@@ -56,6 +44,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               type="email" 
               placeholder="Email..."
               required
+              // Trik mematikan history dropdown email
+              autoComplete="off" 
+              spellCheck="false"
               className="w-full p-5 bg-slate-50 rounded-3xl border-4 border-transparent focus:border-sky-400 focus:bg-white outline-none font-bold text-center text-lg transition-all placeholder:text-slate-400 text-slate-900"
             />
             <input 
@@ -63,6 +54,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               type="password" 
               placeholder="Password..."
               required
+              // Trik "new-password" ampuh buat ngusir pop-up "Suggest Strong Password" dari Google Chrome
+              autoComplete="new-password" 
+              spellCheck="false"
               className="w-full p-5 bg-slate-50 rounded-3xl border-4 border-transparent focus:border-sky-400 focus:bg-white outline-none font-bold text-center text-lg transition-all placeholder:text-slate-400 text-slate-900"
             />
             
@@ -77,4 +71,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       </div>
     </main>
   );
+}
+
+// Helper function biar kodenya rapi
+function activeTab(currentRole: string, tabRole: string) {
+  return currentRole === tabRole ? 'bg-white shadow-sm text-sky-600' : 'text-slate-400 hover:text-slate-600';
 }

@@ -9,6 +9,7 @@ export default function TeacherSidebar({ activeTab, teacherName }: { activeTab: 
   const menuItems = [
     { id: 'vocab', label: 'Materi Hanzi', icon: '🀄', colorClass: 'sky' },
     { id: 'students', label: 'Data Murid', icon: '🐼', colorClass: 'emerald' },
+    { id: 'attendance', label: 'Absensi Harian', icon: '📅', colorClass: 'amber' },
     { id: 'report', label: 'Laporan Progress', icon: '📈', colorClass: 'purple' },
   ];
 
@@ -51,6 +52,7 @@ export default function TeacherSidebar({ activeTab, teacherName }: { activeTab: 
             let activeStyle = '';
             if (item.id === 'vocab') activeStyle = 'bg-sky-100 text-sky-700 border-sky-200 shadow-sm';
             else if (item.id === 'students') activeStyle = 'bg-emerald-100 text-emerald-700 border-emerald-200 shadow-sm';
+            else if (item.id === 'attendance') activeStyle = 'bg-amber-100 text-amber-700 border-amber-200 shadow-sm'; //
             else if (item.id === 'report') activeStyle = 'bg-purple-100 text-purple-700 border-purple-200 shadow-sm';
               
             return (

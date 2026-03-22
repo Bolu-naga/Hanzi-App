@@ -1,8 +1,8 @@
 import prisma from '@/lib/prisma';
 import TeacherSidebar from '@/components/TeacherSidebar';
-import { addVocab, deleteVocab, registerStudent, deleteStudent } from '../../actions';
+import { addVocab, deleteVocab, registerStudent, deleteStudent, markAttendance } from '../../actions';
 
-export default async function TeacherDashboard(props: { searchParams: Promise<{ tab?: string, error?: string, success?: string, name?: string }> }) {
+export default async function TeacherDashboard(props: { searchParams: Promise<{ tab?: string, error?: string, success?: string, name?: string, date?: string }> }) {
   const params = await props.searchParams;
   const activeTab = params.tab || 'vocab';
   const teacherName = params.name || 'Laoshi';
@@ -142,52 +142,191 @@ export default async function TeacherDashboard(props: { searchParams: Promise<{ 
           </div>
         )}
 
-            {/* TAB 3: REPORT PROGRESS MURID */}
-                    {activeTab === 'report' && (
-                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-5xl mx-auto">
-                        <div className="mb-6 md:mb-8 text-center md:text-left">
-                          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Laporan Progress 📈</h1>
-                          <p className="text-slate-500 mt-2 text-base md:text-lg">Pantau jumlah kosakata yang sudah diselesaikan murid.</p>
+{/* TAB 3: REPORT PROGRESS & REKAP ABSEN MURID */}
+        {activeTab === 'report' && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-6xl mx-auto">
+            <div className="mb-8 text-center md:text-left">
+              <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Laporan & Rekap 📊</h1>
+              <p className="text-slate-500 mt-2 text-base md:text-lg">Pantau pencapaian materi dan total kehadiran murid.</p>
+            </div>
+
+            <div className="space-y-6">
+              {allStudents.length === 0 ? (
+                <div className="bg-white p-20 rounded-[40px] border-4 border-dashed border-slate-200 text-center text-slate-400 font-bold">
+                  Belum ada data murid untuk ditampilkan.
+                </div>
+              ) : (
+                allStudents.map(async (student: any) => {
+                  // 1. Hitung Progress Hanzi
+                  const studentProgress = await prisma.progress.count({ where: { studentId: student.id } });
+                  const totalVocab = allVocab.length;
+                  const percentage = totalVocab === 0 ? 0 : Math.round((studentProgress / totalVocab) * 100);
+
+                  // 2. Hitung Total Absensi (Statistik)
+                  const attendances = await prisma.attendance.findMany({ where: { studentId: student.id } });
+                  
+                  // Fix: Kasih tipe data 'any' atau 'Attendance' pada parameter 'a' biar gak error implicitly any
+                  const stats = {
+                    Hadir: attendances.filter((a: any) => a.status === 'Hadir').length,
+                    Izin: attendances.filter((a: any) => a.status === 'Izin').length,
+                    Sakit: attendances.filter((a: any) => a.status === 'Sakit').length,
+                    Alpa: attendances.filter((a: any) => a.status === 'Alpa').length,
+                  };
+
+                  return (
+                    <div key={student.id} className="bg-white p-6 md:p-8 rounded-[35px] shadow-xl border-4 border-white hover:border-purple-100 transition-all flex flex-col gap-8">
+                      
+                      {/* BARIS ATAS: INFO MURID & STATS ABSEN */}
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center text-3xl shadow-inner border-2 border-purple-200">🐼</div>
+                          <div>
+                            <h3 className="text-2xl font-black text-slate-800">{student.name}</h3>
+                            <p className="text-sm font-bold text-slate-400">{student.email}</p>
+                          </div>
                         </div>
 
-                        <div className="bg-white p-6 md:p-8 rounded-[30px] shadow-xl border-4 border-white">
-                          <div className="space-y-6">
-                            {allStudents.length === 0 ? (
-                              <p className="text-slate-400 font-bold text-center py-10">Belum ada data murid.</p>
-                            ) : (
-                              allStudents.map(async (student: any) => {
-                                // Hitung progress per murid langsung di server
-                                const studentProgress = await prisma.progress.count({ where: { studentId: student.id } });
-                                const totalVocab = allVocab.length;
-                                const percentage = totalVocab === 0 ? 0 : Math.round((studentProgress / totalVocab) * 100);
-
-                                return (
-                                  <div key={student.id} className="p-5 border-2 border-slate-100 rounded-2xl hover:border-purple-200 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div>
-                                      <h3 className="text-xl font-black text-slate-800">{student.name}</h3>
-                                      <p className="text-sm font-bold text-slate-400">{student.email}</p>
-                                    </div>
-                                    
-                                    <div className="flex-1 max-w-sm w-full">
-                                      <div className="flex justify-between text-sm font-bold mb-2">
-                                        <span className="text-purple-700">Pencapaian</span>
-                                        <span className="text-slate-500">{studentProgress} dari {totalVocab} Kata</span>
-                                      </div>
-                                      <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
-                                        <div 
-                                          className="bg-purple-500 h-full rounded-full transition-all duration-1000"
-                                          style={{ width: `${percentage}%` }}
-                                        />
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })
-                            )}
+                        {/* REKAP ABSENSI (Optimasi min-w-20 sesuai saran IDE) */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
+                          <div className="bg-emerald-50 border-2 border-emerald-100 p-3 rounded-2xl text-center min-w-20">
+                            <p className="text-[10px] font-black text-emerald-600 uppercase">Hadir</p>
+                            <p className="text-xl font-black text-emerald-700">{stats.Hadir}</p>
+                          </div>
+                          <div className="bg-blue-50 border-2 border-blue-100 p-3 rounded-2xl text-center min-w-20">
+                            <p className="text-[10px] font-black text-blue-600 uppercase">Izin</p>
+                            <p className="text-xl font-black text-blue-700">{stats.Izin}</p>
+                          </div>
+                          <div className="bg-amber-50 border-2 border-amber-100 p-3 rounded-2xl text-center min-w-20">
+                            <p className="text-[10px] font-black text-amber-600 uppercase">Sakit</p>
+                            <p className="text-xl font-black text-amber-700">{stats.Sakit}</p>
+                          </div>
+                          <div className="bg-red-50 border-2 border-red-100 p-3 rounded-2xl text-center min-w-20">
+                            <p className="text-[10px] font-black text-red-600 uppercase">Alpa</p>
+                            <p className="text-xl font-black text-red-700">{stats.Alpa}</p>
                           </div>
                         </div>
                       </div>
-                    )}
+
+                      {/* BARIS BAWAH: PROGRESS BAR HANZI (Optimasi bg-linear-to-r) */}
+                      <div className="bg-slate-50 p-6 rounded-3xl border-2 border-slate-100">
+                        <div className="flex justify-between items-end mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🀄</span>
+                            <span className="font-black text-slate-700">Pencapaian Hanzi</span>
+                          </div>
+                          <span className="text-sm font-black text-purple-600 bg-purple-100 px-3 py-1 rounded-full border border-purple-200">
+                            {studentProgress} / {totalVocab} Kata ({percentage}%)
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-200 h-4 rounded-full overflow-hidden shadow-inner">
+                          <div 
+                            className="bg-linear-to-r from-purple-500 to-indigo-500 h-full rounded-full transition-all duration-1000 shadow-lg"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+
+{/* TAB 4: ABSENSI HARIAN MURID */}
+        {activeTab === 'attendance' && (() => {
+          // Bikin tanggal hari ini (WIB/WITA) sebagai default kalau Laoshi belum pilih tanggal
+          const today = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+          const selectedDate = params.date || today;
+
+          return (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-5xl mx-auto">
+              <div className="mb-6 md:mb-8 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Absensi Harian 📅</h1>
+                  <p className="text-slate-500 mt-2 text-base md:text-lg">Catat kehadiran murid untuk tanggal yang dipilih.</p>
+                </div>
+
+                {/* DATE PICKER (Pilih Tanggal) */}
+<form method="GET" className="bg-white p-2 rounded-2xl border-4 border-amber-100 shadow-sm flex items-center">
+                  <input type="hidden" name="tab" value="attendance" />
+                  <input type="hidden" name="name" value={teacherName} />
+                  <label className="font-bold text-amber-700 mx-3 hidden md:block">Pilih Tanggal:</label>
+                  <input 
+                    type="date" 
+                    name="date" 
+                    defaultValue={selectedDate}
+                    // onChange dihapus biar gak error
+                    className="p-3 bg-amber-50 text-amber-900 rounded-xl outline-none font-black cursor-pointer border-2 border-transparent focus:border-amber-300 w-full md:w-auto"
+                  />
+                  {/* Tambahan Tombol Submit */}
+                  <button type="submit" className="ml-3 px-6 py-3 bg-amber-500 text-white font-black rounded-xl hover:bg-amber-600 shadow-[0_4px_0_rgb(217,119,6)] active:translate-y-1 active:shadow-none transition-all">
+                    CEK
+                  </button>
+                </form>
+              </div>
+
+              <div className="bg-white p-6 md:p-8 rounded-[30px] shadow-xl border-4 border-white">
+                <div className="space-y-4">
+                  {allStudents.length === 0 ? (
+                    <p className="text-slate-400 font-bold text-center py-10">Belum ada data murid.</p>
+                  ) : (
+                    allStudents.map(async (student: any) => {
+                      // Ambil status absen si murid di tanggal yang dipilih
+                      const attendance = await prisma.attendance.findUnique({
+                        where: { studentId_date: { studentId: student.id, date: selectedDate } }
+                      });
+                      const currentStatus = attendance?.status || 'Belum Absen';
+
+                      const statusColors: any = {
+                        'Hadir': 'bg-emerald-500 text-white shadow-[0_4px_0_rgb(5,150,105)]',
+                        'Izin': 'bg-blue-500 text-white shadow-[0_4px_0_rgb(37,99,235)]',
+                        'Sakit': 'bg-amber-500 text-white shadow-[0_4px_0_rgb(217,119,6)]',
+                        'Alpa': 'bg-red-500 text-white shadow-[0_4px_0_rgb(220,38,38)]',
+                        'Belum Absen': 'bg-slate-100 text-slate-400 border-2 border-slate-200'
+                      };
+
+                      return (
+                        <div key={student.id} className="p-5 border-2 border-slate-100 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-amber-200 transition-all">
+                          <div>
+                            <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                              {student.name}
+                              {currentStatus !== 'Belum Absen' && <span className="text-sm">✅</span>}
+                            </h3>
+                            <p className="text-sm font-bold text-slate-400">{student.email}</p>
+                          </div>
+                          
+                          {/* TOMBOL ABSEN CEPAT */}
+                          <form action={markAttendance} className="flex flex-wrap gap-2">
+                            <input type="hidden" name="studentId" value={student.id} />
+                            <input type="hidden" name="date" value={selectedDate} />
+                            <input type="hidden" name="teacherName" value={teacherName} />
+                            
+                            {['Hadir', 'Izin', 'Sakit', 'Alpa'].map((status) => {
+                              const isActive = currentStatus === status;
+                              return (
+                                <button 
+                                  key={status}
+                                  type="submit" 
+                                  name="status" 
+                                  value={status}
+                                  className={`px-4 py-2 rounded-xl font-bold text-sm transition-all active:translate-y-1 active:shadow-none ${isActive ? statusColors[status] : 'bg-white text-slate-500 border-2 border-slate-200 hover:bg-slate-50'}`}
+                                >
+                                  {status}
+                                </button>
+                              );
+                            })}
+                          </form>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
       </main>
     </div>

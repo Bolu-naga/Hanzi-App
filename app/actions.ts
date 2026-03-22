@@ -46,7 +46,7 @@ export async function deleteVocab(id: string) {
 }
 
 // ==========================================
-// 3. FUNGSI MANAJEMEN MURID (BARU!)
+// 3. FUNGSI MANAJEMEN MURID
 // ==========================================
 export async function registerStudent(formData: FormData) {
   const name = formData.get('name')?.toString();
@@ -70,7 +70,7 @@ export async function deleteStudent(id: string) {
 }
 
 // ==========================================
-// 4. FUNGSI SIMPAN PROGRESS MURID (BARU!)
+// 4. FUNGSI SIMPAN PROGRESS MURID
 // ==========================================
 export async function saveProgress(studentId: string, vocabId: string) {
   if (!studentId || !vocabId) return;
@@ -85,4 +85,27 @@ export async function saveProgress(studentId: string, vocabId: string) {
       data: { studentId, vocabId, isDone: true }
     });
   }
+}
+
+// ==========================================
+// 5. FUNGSI ABSENSI HARIAN
+// ==========================================
+export async function markAttendance(formData: FormData) {
+  const studentId = formData.get('studentId')?.toString();
+  const date = formData.get('date')?.toString();
+  const status = formData.get('status')?.toString();
+  const teacherName = formData.get('teacherName')?.toString() || 'Laoshi';
+
+  if (!studentId || !date || !status) return;
+
+  // upsert = Kalau hari ini belum absen, Create. Kalau udah absen tapi Laoshi salah pencet, Update.
+  await prisma.attendance.upsert({
+    where: {
+      studentId_date: { studentId, date }
+    },
+    update: { status },
+    create: { studentId, date, status }
+  });
+
+  redirect(`/teacher/dashboard?tab=attendance&date=${date}&name=${encodeURIComponent(teacherName)}`);
 }

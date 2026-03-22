@@ -21,6 +21,7 @@ model Student {
   email    String @unique
   password String 
   progress Progress[]
+  attendances Attendance[]
 }
 
 model Vocab {
@@ -39,4 +40,14 @@ model Progress {
   isDone     Boolean  @default(false)
   createdAt  DateTime @default(now())
   student    Student  @relation(fields: [studentId], references: [id])
+}
+
+model Attendance {
+  id        String   @id @default(cuid())
+  studentId String
+  date      String   // Format YYYY-MM-DD biar gampang difilter
+  status    String   // 'Hadir', 'Izin', 'Sakit', 'Alpa'
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, date]) 
 }
