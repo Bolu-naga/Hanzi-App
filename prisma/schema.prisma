@@ -3,29 +3,31 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
-model Partner {
-  id          String    @id @default(cuid())
-  name        String
-  accessCode  String    @unique
-  students    Student[]
+// Akun Guru / Laoshi
+model Teacher {
+  id       String @id @default(cuid())
+  name     String
+  email    String @unique
+  password String 
 }
 
+// Akun Murid (Dibuat oleh Guru)
 model Student {
-  id          String     @id @default(cuid())
-  name        String
-  partnerId   String
-  partner     Partner    @relation(fields: [partnerId], references: [id])
-  progress    Progress[]
+  id       String @id @default(cuid())
+  name     String
+  email    String @unique
+  password String 
+  progress Progress[]
 }
 
 model Vocab {
   id        String   @id @default(cuid())
-  level     Int      
-  session   Int      
-  hanzi     String   
+  level     Int
+  session   Int
+  hanzi     String
   pinyin    String
   meaning   String
 }
