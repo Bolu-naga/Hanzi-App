@@ -21,6 +21,7 @@ model Student {
   name     String
   email    String @unique
   password String 
+  className   String       @default("Kelas Umum")
   progress Progress[]
   attendances Attendance[]
 }

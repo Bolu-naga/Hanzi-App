@@ -11,19 +11,17 @@ export async function loginUser(formData: FormData) {
   const email = formData.get('email')?.toString();
   const password = formData.get('password')?.toString();
   const role = formData.get('role')?.toString();
-  const remember = formData.get('remember') === 'on'; // 👈 BACA CEKLIS INGAT SAYA
+  const remember = formData.get('remember') === 'on';
 
   if (!email || !password) redirect(`/?error=missing&role=${role}`);
 
   const cookieStore = await cookies();
-  // Kalau dicentang, tiket berlaku 30 hari. Kalau nggak, hangus pas browser ditutup.
   const maxAge = remember ? 60 * 60 * 24 * 30 : undefined; 
 
   if (role === 'teacher') {
     const teacher = await prisma.teacher.findUnique({ where: { email } });
     if (!teacher || teacher.password !== password) redirect(`/?error=wrong&role=teacher`);
     
-    // Simpan tiket di browser
     cookieStore.set('hanzi_session', JSON.stringify({ id: teacher.id, role: 'teacher', name: teacher.name }), { httpOnly: true, maxAge });
     redirect(`/teacher/dashboard?tab=vocab&name=${encodeURIComponent(teacher.name)}`);
   
@@ -31,18 +29,17 @@ export async function loginUser(formData: FormData) {
     const student = await prisma.student.findUnique({ where: { email } });
     if (!student || student.password !== password) redirect(`/?error=wrong&role=student`);
     
-    // Simpan tiket di browser
     cookieStore.set('hanzi_session', JSON.stringify({ id: student.id, role: 'student', name: student.name }), { httpOnly: true, maxAge });
     redirect(`/sessions?name=${encodeURIComponent(student.name)}&studentId=${student.id}`);
   }
 }
 
 // ==========================================
-// FUNGSI LOGOUT (BARU!)
+// FUNGSI LOGOUT
 // ==========================================
 export async function logoutUser() {
   const cookieStore = await cookies();
-  cookieStore.delete('hanzi_session'); // Hancurkan tiket
+  cookieStore.delete('hanzi_session');
   redirect('/');
 }
 
@@ -74,19 +71,25 @@ export async function registerStudent(formData: FormData) {
   const name = formData.get('name')?.toString();
   const email = formData.get('email')?.toString();
   const password = formData.get('password')?.toString();
+  const className = formData.get('className')?.toString() || 'Kelas Umum';
 
   if (!name || !email || !password) redirect('/teacher/dashboard?tab=students&error=missing_student');
 
   try {
-    await prisma.student.create({ data: { name, email, password } });
+    await prisma.student.create({ data: { name, email, password, className } });
   } catch (error) {
     redirect('/teacher/dashboard?tab=students&error=email_exists');
   }
   redirect('/teacher/dashboard?tab=students&success=student_added');
 }
 
+// 👇 INI YANG TADI ILANG (FUNGSI HAPUS MURID) 👇
 export async function deleteStudent(id: string) {
+  // Hapus data relasi dulu biar nggak nyangkut
   await prisma.progress.deleteMany({ where: { studentId: id } });
+  await prisma.attendance.deleteMany({ where: { studentId: id } });
+  
+  // Baru hapus akun muridnya
   await prisma.student.delete({ where: { id } });
   redirect('/teacher/dashboard?tab=students');
 }
@@ -96,12 +99,10 @@ export async function deleteStudent(id: string) {
 // ==========================================
 export async function saveProgress(studentId: string, vocabId: string) {
   if (!studentId || !vocabId) return;
-  // Cek apakah Hanzi ini sudah pernah diselesaikan sebelumnya
   const exist = await prisma.progress.findFirst({
     where: { studentId, vocabId }
   });
   
-  // Kalau belum ada, catat di database!
   if (!exist) {
     await prisma.progress.create({
       data: { studentId, vocabId, isDone: true }
@@ -120,7 +121,6 @@ export async function markAttendance(formData: FormData) {
 
   if (!studentId || !date || !status) return;
 
-  // upsert = Kalau hari ini belum absen, Create. Kalau udah absen tapi Laoshi salah pencet, Update.
   await prisma.attendance.upsert({
     where: {
       studentId_date: { studentId, date }
@@ -139,7 +139,6 @@ export async function updateDailyNote(formData: FormData) {
   const note = formData.get('note')?.toString();
   if (!note) return;
 
-  // Karena ini MVP (1 guru), kita ambil guru pertama di database lalu update catatannya
   const teacher = await prisma.teacher.findFirst();
   if (teacher) {
     await prisma.teacher.update({
@@ -149,4 +148,21 @@ export async function updateDailyNote(formData: FormData) {
   }
   
   redirect('/teacher/dashboard?tab=students&success=note_updated');
+}
+
+// ==========================================
+// 7. FUNGSI EDIT/PINDAH KELAS MURID
+// ==========================================
+export async function updateStudentClass(formData: FormData) {
+  const id = formData.get('id')?.toString();
+  const className = formData.get('className')?.toString();
+  
+  if (!id || !className) return;
+
+  await prisma.student.update({
+    where: { id },
+    data: { className }
+  });
+  
+  redirect('/teacher/dashboard?tab=students&success=class_updated');
 }
