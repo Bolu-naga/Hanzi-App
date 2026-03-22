@@ -12,6 +12,7 @@ model Teacher {
   name     String
   email    String @unique
   password String 
+  dailyNote String @default("Halo! Terus berlatih ya. Pilih menu Ruang Kelas di samping untuk mulai belajar dan menambah poin Hanzi-mu hari ini!")
 }
 
 // Akun Murid (Dibuat oleh Guru)

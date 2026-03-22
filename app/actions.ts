@@ -109,3 +109,22 @@ export async function markAttendance(formData: FormData) {
 
   redirect(`/teacher/dashboard?tab=attendance&date=${date}&name=${encodeURIComponent(teacherName)}`);
 }
+
+// ==========================================
+// 6. FUNGSI UPDATE PENGUMUMAN MURID
+// ==========================================
+export async function updateDailyNote(formData: FormData) {
+  const note = formData.get('note')?.toString();
+  if (!note) return;
+
+  // Karena ini MVP (1 guru), kita ambil guru pertama di database lalu update catatannya
+  const teacher = await prisma.teacher.findFirst();
+  if (teacher) {
+    await prisma.teacher.update({
+      where: { id: teacher.id },
+      data: { dailyNote: note }
+    });
+  }
+  
+  redirect('/teacher/dashboard?tab=students&success=note_updated');
+}

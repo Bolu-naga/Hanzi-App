@@ -14,15 +14,18 @@ export default async function SessionsPage(props: { searchParams: Promise<{ name
     orderBy: { session: 'asc' },
   });
 
-  // Hitung jumlah Hanzi yang sudah diselesaikan murid (Persiapan Sprint 4)
+  // Hitung jumlah Hanzi yang sudah diselesaikan murid
   const progressCount = await prisma.progress.count({
     where: { studentId: studentId }
   });
 
+  // 👇 1. INI TAMBAHANNYA: Ambil Pesan Custom dari Database
+  const teacherData = await prisma.teacher.findFirst();
+  const customMessage = teacherData?.dailyNote || `"Halo ${name}! Terus berlatih ya. Pilih menu Ruang Kelas di samping untuk mulai belajar dan menambah poin Hanzi-mu hari ini!"`;
+
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans flex-col md:flex-row">
-      
-      {/* Panggil Sidebar Keren Kita */}
+      {/* SIDEBAR */}
       <StudentSidebar activeTab={activeTab} studentName={name} studentId={studentId} />
 
       {/* AREA KONTEN UTAMA */}
@@ -52,11 +55,14 @@ export default async function SessionsPage(props: { searchParams: Promise<{ name
               </div>
             </div>
 
+            {/* 👇 2. INI YANG DIUBAH: Nampilin pesan dinamis */}
             <div className="bg-sky-50 p-6 rounded-3xl border-2 border-sky-200 shadow-inner flex gap-4 items-start">
               <span className="text-4xl">🧑‍🏫</span>
-              <div>
-                <h3 className="text-xl font-bold text-sky-900 mb-1">Pesan dari Laoshi:</h3>
-                <p className="text-sky-700 font-medium leading-relaxed">"Halo {name}! Terus berlatih ya. Pilih menu <b className="text-sky-900">Ruang Kelas</b> di samping untuk mulai belajar dan menambah poin Hanzi-mu hari ini!"</p>
+              <div className="w-full">
+                <h3 className="text-xl font-bold text-sky-900 mb-2">Pesan dari Laoshi:</h3>
+                <p className="text-sky-700 font-medium leading-relaxed whitespace-pre-wrap">
+                  {customMessage}
+                </p>
               </div>
             </div>
           </div>
