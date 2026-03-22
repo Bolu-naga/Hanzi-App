@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { logoutUser } from '@/app/actions';
 
 export default function StudentSidebar({ activeTab, studentName, studentId }: { activeTab: string, studentName: string, studentId: string }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,11 +54,11 @@ export default function StudentSidebar({ activeTab, studentName, studentId }: { 
           ))}
         </nav>
 
-        <div className="p-6 border-t-2 border-slate-100">
-          <Link href="/" className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-red-50 text-red-500 font-bold hover:bg-red-100 transition-all w-full border border-red-100">
+        <form action={logoutUser} className="p-6 border-t-2 border-slate-100 bg-white">
+          <button type="submit" className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-red-50 text-red-500 font-bold hover:bg-red-100 transition-all w-full border border-red-100 cursor-pointer">
             🚪 Keluar Akun
-          </Link>
-        </div>
+          </button>
+        </form>
       </aside>
 
       {/* OVERLAY GELAP UNTUK MOBILE (Kalau menu lagi kebuka) */}

@@ -2,26 +2,48 @@
 
 import prisma from '@/lib/prisma';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 // ==========================================
-// 1. FUNGSI LOGIN (GURU & MURID)
+// 1. FUNGSI LOGIN (DENGAN COOKIES)
 // ==========================================
 export async function loginUser(formData: FormData) {
   const email = formData.get('email')?.toString();
   const password = formData.get('password')?.toString();
   const role = formData.get('role')?.toString();
+  const remember = formData.get('remember') === 'on'; // 👈 BACA CEKLIS INGAT SAYA
 
   if (!email || !password) redirect(`/?error=missing&role=${role}`);
+
+  const cookieStore = await cookies();
+  // Kalau dicentang, tiket berlaku 30 hari. Kalau nggak, hangus pas browser ditutup.
+  const maxAge = remember ? 60 * 60 * 24 * 30 : undefined; 
 
   if (role === 'teacher') {
     const teacher = await prisma.teacher.findUnique({ where: { email } });
     if (!teacher || teacher.password !== password) redirect(`/?error=wrong&role=teacher`);
+    
+    // Simpan tiket di browser
+    cookieStore.set('hanzi_session', JSON.stringify({ id: teacher.id, role: 'teacher', name: teacher.name }), { httpOnly: true, maxAge });
     redirect(`/teacher/dashboard?tab=vocab&name=${encodeURIComponent(teacher.name)}`);
+  
   } else {
     const student = await prisma.student.findUnique({ where: { email } });
     if (!student || student.password !== password) redirect(`/?error=wrong&role=student`);
+    
+    // Simpan tiket di browser
+    cookieStore.set('hanzi_session', JSON.stringify({ id: student.id, role: 'student', name: student.name }), { httpOnly: true, maxAge });
     redirect(`/sessions?name=${encodeURIComponent(student.name)}&studentId=${student.id}`);
   }
+}
+
+// ==========================================
+// FUNGSI LOGOUT (BARU!)
+// ==========================================
+export async function logoutUser() {
+  const cookieStore = await cookies();
+  cookieStore.delete('hanzi_session'); // Hancurkan tiket
+  redirect('/');
 }
 
 // ==========================================
