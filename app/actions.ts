@@ -16,7 +16,8 @@ export async function loginUser(formData: FormData) {
   if (role === 'teacher') {
     const teacher = await prisma.teacher.findUnique({ where: { email } });
     if (!teacher || teacher.password !== password) redirect(`/?error=wrong&role=teacher`);
-    redirect(`/teacher/dashboard?name=${encodeURIComponent(teacher.name)}`);
+    // Arahkan ke dashboard dengan tab vocab default
+    redirect(`/teacher/dashboard?tab=vocab&name=${encodeURIComponent(teacher.name)}`);
   } else {
     const student = await prisma.student.findUnique({ where: { email } });
     if (!student || student.password !== password) redirect(`/?error=wrong&role=student`);
@@ -34,17 +35,17 @@ export async function addVocab(formData: FormData) {
   const session = parseInt(formData.get('session')?.toString() || '1');
   const level = parseInt(formData.get('level')?.toString() || '1');
 
-  if (!hanzi || !pinyin || !meaning) redirect('/teacher/dashboard?error=missing');
+  if (!hanzi || !pinyin || !meaning) redirect('/teacher/dashboard?tab=vocab&error=missing');
 
   await prisma.vocab.create({
     data: { hanzi, pinyin, meaning, session, level },
   });
-  redirect('/teacher/dashboard');
+  redirect('/teacher/dashboard?tab=vocab');
 }
 
 export async function deleteVocab(id: string) {
   await prisma.vocab.delete({ where: { id } });
-  redirect('/teacher/dashboard');
+  redirect('/teacher/dashboard?tab=vocab');
 }
 
 // ==========================================
@@ -55,24 +56,18 @@ export async function registerStudent(formData: FormData) {
   const email = formData.get('email')?.toString();
   const password = formData.get('password')?.toString();
 
-  if (!name || !email || !password) redirect('/teacher/dashboard?error=missing_student');
+  if (!name || !email || !password) redirect('/teacher/dashboard?tab=students&error=missing_student');
 
   try {
-    await prisma.student.create({
-      data: { name, email, password },
-    });
+    await prisma.student.create({ data: { name, email, password } });
   } catch (error) {
-    // Kalau email udah ada di database, Prisma bakal lempar error
-    redirect('/teacher/dashboard?error=email_exists');
+    redirect('/teacher/dashboard?tab=students&error=email_exists');
   }
-
-  redirect('/teacher/dashboard?success=student_added');
+  redirect('/teacher/dashboard?tab=students&success=student_added');
 }
 
 export async function deleteStudent(id: string) {
-  // Hapus semua progress murid ini dulu biar gak nyangkut (Cascade delete manual)
   await prisma.progress.deleteMany({ where: { studentId: id } });
-  // Baru hapus akun muridnya
   await prisma.student.delete({ where: { id } });
-  redirect('/teacher/dashboard');
+  redirect('/teacher/dashboard?tab=students');
 }
