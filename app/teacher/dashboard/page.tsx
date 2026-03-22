@@ -142,6 +142,53 @@ export default async function TeacherDashboard(props: { searchParams: Promise<{ 
           </div>
         )}
 
+            {/* TAB 3: REPORT PROGRESS MURID */}
+                    {activeTab === 'report' && (
+                      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-5xl mx-auto">
+                        <div className="mb-6 md:mb-8 text-center md:text-left">
+                          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Laporan Progress 📈</h1>
+                          <p className="text-slate-500 mt-2 text-base md:text-lg">Pantau jumlah kosakata yang sudah diselesaikan murid.</p>
+                        </div>
+
+                        <div className="bg-white p-6 md:p-8 rounded-[30px] shadow-xl border-4 border-white">
+                          <div className="space-y-6">
+                            {allStudents.length === 0 ? (
+                              <p className="text-slate-400 font-bold text-center py-10">Belum ada data murid.</p>
+                            ) : (
+                              allStudents.map(async (student: any) => {
+                                // Hitung progress per murid langsung di server
+                                const studentProgress = await prisma.progress.count({ where: { studentId: student.id } });
+                                const totalVocab = allVocab.length;
+                                const percentage = totalVocab === 0 ? 0 : Math.round((studentProgress / totalVocab) * 100);
+
+                                return (
+                                  <div key={student.id} className="p-5 border-2 border-slate-100 rounded-2xl hover:border-purple-200 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div>
+                                      <h3 className="text-xl font-black text-slate-800">{student.name}</h3>
+                                      <p className="text-sm font-bold text-slate-400">{student.email}</p>
+                                    </div>
+                                    
+                                    <div className="flex-1 max-w-sm w-full">
+                                      <div className="flex justify-between text-sm font-bold mb-2">
+                                        <span className="text-purple-700">Pencapaian</span>
+                                        <span className="text-slate-500">{studentProgress} dari {totalVocab} Kata</span>
+                                      </div>
+                                      <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+                                        <div 
+                                          className="bg-purple-500 h-full rounded-full transition-all duration-1000"
+                                          style={{ width: `${percentage}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
       </main>
     </div>
   );

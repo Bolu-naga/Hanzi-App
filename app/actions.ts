@@ -16,7 +16,6 @@ export async function loginUser(formData: FormData) {
   if (role === 'teacher') {
     const teacher = await prisma.teacher.findUnique({ where: { email } });
     if (!teacher || teacher.password !== password) redirect(`/?error=wrong&role=teacher`);
-    // Arahkan ke dashboard dengan tab vocab default
     redirect(`/teacher/dashboard?tab=vocab&name=${encodeURIComponent(teacher.name)}`);
   } else {
     const student = await prisma.student.findUnique({ where: { email } });
@@ -37,9 +36,7 @@ export async function addVocab(formData: FormData) {
 
   if (!hanzi || !pinyin || !meaning) redirect('/teacher/dashboard?tab=vocab&error=missing');
 
-  await prisma.vocab.create({
-    data: { hanzi, pinyin, meaning, session, level },
-  });
+  await prisma.vocab.create({ data: { hanzi, pinyin, meaning, session, level } });
   redirect('/teacher/dashboard?tab=vocab');
 }
 
@@ -70,4 +67,22 @@ export async function deleteStudent(id: string) {
   await prisma.progress.deleteMany({ where: { studentId: id } });
   await prisma.student.delete({ where: { id } });
   redirect('/teacher/dashboard?tab=students');
+}
+
+// ==========================================
+// 4. FUNGSI SIMPAN PROGRESS MURID (BARU!)
+// ==========================================
+export async function saveProgress(studentId: string, vocabId: string) {
+  if (!studentId || !vocabId) return;
+  // Cek apakah Hanzi ini sudah pernah diselesaikan sebelumnya
+  const exist = await prisma.progress.findFirst({
+    where: { studentId, vocabId }
+  });
+  
+  // Kalau belum ada, catat di database!
+  if (!exist) {
+    await prisma.progress.create({
+      data: { studentId, vocabId, isDone: true }
+    });
+  }
 }

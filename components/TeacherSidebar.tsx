@@ -9,6 +9,7 @@ export default function TeacherSidebar({ activeTab, teacherName }: { activeTab: 
   const menuItems = [
     { id: 'vocab', label: 'Materi Hanzi', icon: '🀄', colorClass: 'sky' },
     { id: 'students', label: 'Data Murid', icon: '🐼', colorClass: 'emerald' },
+    { id: 'report', label: 'Laporan Progress', icon: '📈', colorClass: 'purple' },
   ];
 
   return (
@@ -44,11 +45,13 @@ export default function TeacherSidebar({ activeTab, teacherName }: { activeTab: 
         
         <nav className="flex-1 p-6 space-y-3 overflow-y-auto">
           {menuItems.map(item => {
-            // Logika pewarnaan tab aktif yang dinamis (Sky untuk Hanzi, Emerald untuk Murid)
             const isActive = activeTab === item.id;
-            const activeStyle = item.id === 'vocab' 
-              ? 'bg-sky-100 text-sky-700 border-sky-200 shadow-sm' 
-              : 'bg-emerald-100 text-emerald-700 border-emerald-200 shadow-sm';
+            
+            // Logika pewarnaan tab aktif yang dinamis
+            let activeStyle = '';
+            if (item.id === 'vocab') activeStyle = 'bg-sky-100 text-sky-700 border-sky-200 shadow-sm';
+            else if (item.id === 'students') activeStyle = 'bg-emerald-100 text-emerald-700 border-emerald-200 shadow-sm';
+            else if (item.id === 'report') activeStyle = 'bg-purple-100 text-purple-700 border-purple-200 shadow-sm';
               
             return (
               <Link 
@@ -61,10 +64,6 @@ export default function TeacherSidebar({ activeTab, teacherName }: { activeTab: 
               </Link>
             )
           })}
-
-          <div className="flex items-center gap-4 p-4 rounded-2xl font-bold text-slate-300 cursor-not-allowed border-2 border-transparent">
-            <span className="text-2xl opacity-50">📊</span> Report (Segera)
-          </div>
         </nav>
 
         <div className="p-6 border-t-2 border-slate-100 bg-white">
