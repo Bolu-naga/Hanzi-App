@@ -10,13 +10,14 @@ export default function TeacherSidebar({ activeTab, teacherName }: { activeTab: 
   const menuItems = [
     { id: 'vocab', label: 'Materi Hanzi', icon: '🀄', colorClass: 'sky' },
     { id: 'students', label: 'Data Murid', icon: '🐼', colorClass: 'emerald' },
-    { id: 'attendance', label: 'Absensi Harian', icon: '📅', colorClass: 'amber' },
+    { id: 'attendance', label: 'Absensi Harian', icon: '📅', colorClass: 'amber' }, // TAB BARU
     { id: 'report', label: 'Laporan Progress', icon: '📈', colorClass: 'purple' },
   ];
 
   return (
     <>
       {/* HEADER MOBILE & BURGER ICON */}
+      {/* Posisi: sticky top-0 z-50 */}
       <div className="md:hidden flex items-center justify-between bg-white p-5 border-b-2 border-slate-200 sticky top-0 z-50 shadow-sm">
         <div>
           <h2 className="text-2xl font-black text-sky-600 italic tracking-tight">Laoshi Panel.</h2>
@@ -37,23 +38,27 @@ export default function TeacherSidebar({ activeTab, teacherName }: { activeTab: 
       </div>
 
       {/* SIDEBAR DESKTOP & SLIDE MOBILE */}
+      {/* Posisi: fixed z-40 (meluncur DI BAWAH Header Mobile z-50) */}
       <aside 
         className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white border-r-2 border-slate-200 flex flex-col z-40 transition-transform transform ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} md:translate-x-0`}
       >
+        {/* Logo/header desktop */}
         <div className="p-8 border-b-2 border-slate-100 hidden md:block">
           <h2 className="text-3xl font-black text-sky-600 italic tracking-tight">Laoshi Panel.</h2>
           <p className="text-slate-400 font-bold mt-1 text-sm truncate">Hi, {teacherName}</p>
         </div>
         
-        <nav className="flex-1 p-6 space-y-3 overflow-y-auto">
+        {/* Area Navigasi Menu */}
+        {/* MASALAH: Padding atas */}
+        {/* Tambahkan padding atas yang cukup besar untuk mobile */}
+        <nav className="flex-1 p-6 space-y-3 overflow-y-auto pt-28 md:pt-6"> {/* pt-28 (112px) untuk mobile, pt-6 untuk desktop */}
           {menuItems.map(item => {
             const isActive = activeTab === item.id;
             
-            // Logika pewarnaan tab aktif yang dinamis
             let activeStyle = '';
             if (item.id === 'vocab') activeStyle = 'bg-sky-100 text-sky-700 border-sky-200 shadow-sm';
             else if (item.id === 'students') activeStyle = 'bg-emerald-100 text-emerald-700 border-emerald-200 shadow-sm';
-            else if (item.id === 'attendance') activeStyle = 'bg-amber-100 text-amber-700 border-amber-200 shadow-sm'; //
+            else if (item.id === 'attendance') activeStyle = 'bg-amber-100 text-amber-700 border-amber-200 shadow-sm';
             else if (item.id === 'report') activeStyle = 'bg-purple-100 text-purple-700 border-purple-200 shadow-sm';
               
             return (
@@ -69,6 +74,7 @@ export default function TeacherSidebar({ activeTab, teacherName }: { activeTab: 
           })}
         </nav>
 
+        {/* Tombol Logout */}
         <form action={logoutUser} className="p-6 border-t-2 border-slate-100 bg-white">
           <button type="submit" className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-red-50 text-red-500 font-bold hover:bg-red-100 transition-all w-full border border-red-100 cursor-pointer">
             🚪 Keluar Akun
