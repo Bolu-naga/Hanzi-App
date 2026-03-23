@@ -60,6 +60,7 @@ export async function addVocab(formData: FormData) {
 }
 
 export async function deleteVocab(id: string) {
+  await prisma.progress.deleteMany({ where: { vocabId: id } });
   await prisma.vocab.delete({ where: { id } });
   redirect('/teacher/dashboard?tab=vocab');
 }

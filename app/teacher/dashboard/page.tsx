@@ -234,39 +234,41 @@ export default async function TeacherDashboard(props: {
                   </span>{" "}
                   Daftarkan Akun
                 </h3>
-                <form action={registerStudent} className="flex flex-col gap-4">
-                  <input
-                    name="name"
-                    placeholder="Nama Panggilan"
-                    required
-                    className="w-full p-4 bg-slate-50 text-slate-900 rounded-2xl border-2 border-slate-200 outline-none focus:border-emerald-500 font-bold"
+<form action={registerStudent} className="flex flex-col gap-4" autoComplete="off">
+                  <input 
+                    name="name" 
+                    placeholder="Nama Panggilan" 
+                    required 
+                    autoComplete="off" 
+                    spellCheck="false"
+                    className="w-full p-4 bg-slate-50 text-slate-900 rounded-2xl border-2 border-slate-200 outline-none focus:border-emerald-500 font-bold" 
                   />
-                  <input
-                    name="email"
-                    type="email"
-                    placeholder="Email Murid"
-                    required
-                    className="w-full p-4 bg-slate-50 text-slate-900 rounded-2xl border-2 border-slate-200 outline-none focus:border-emerald-500 font-bold"
+                  <input 
+                    name="email" 
+                    type="email" 
+                    placeholder="Email Murid" 
+                    required 
+                    autoComplete="off" 
+                    spellCheck="false"
+                    className="w-full p-4 bg-slate-50 text-slate-900 rounded-2xl border-2 border-slate-200 outline-none focus:border-emerald-500 font-bold" 
                   />
-                  <input
-                    name="password"
-                    type="text"
-                    placeholder="Buat Password"
-                    required
-                    className="w-full p-4 bg-slate-50 text-slate-900 rounded-2xl border-2 border-slate-200 outline-none focus:border-emerald-500 font-bold"
+                  <input 
+                    name="password" 
+                    type="text" 
+                    placeholder="Buat Password" 
+                    required 
+                    autoComplete="new-password" 
+                    spellCheck="false"
+                    className="w-full p-4 bg-slate-50 text-slate-900 rounded-2xl border-2 border-slate-200 outline-none focus:border-emerald-500 font-bold" 
                   />
-                  <input
-                    name="className"
-                    type="text"
-                    placeholder="Masukan Kelas (ex: Kelas A)"
-                    required
-                    list="class-suggestions"
-                    className="w-full p-4 bg-emerald-50 text-emerald-900 rounded-2xl border-2 border-emerald-200 outline-none focus:border-emerald-500 font-black placeholder:text-emerald-300"
+                  
+                  {/* Dropdown Kelas yang udah cantik */}
+                  <ClassDropdown 
+                    existingClasses={Object.keys(studentsByClass)} 
+                    customClass="w-full p-4 bg-emerald-50 text-emerald-900 rounded-2xl border-2 border-emerald-200 outline-none focus:border-emerald-500 font-black placeholder:text-emerald-500 transition-all"
                   />
-                  <button
-                    type="submit"
-                    className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-black text-lg hover:bg-emerald-600 shadow-[0_5px_0_rgb(5,150,105)] active:translate-y-1 active:shadow-none transition-all mt-4"
-                  >
+
+                  <button type="submit" className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-black text-lg hover:bg-emerald-600 shadow-[0_5px_0_rgb(5,150,105)] active:translate-y-1 active:shadow-none transition-all mt-4">
                     BUAT AKUN
                   </button>
                 </form>
