@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import TeacherSidebar from "@/components/TeacherSidebar";
+import SubmitButton from '@/components/SubmitButton';
 import {
   addVocab,
   deleteVocab,
@@ -234,7 +235,7 @@ export default async function TeacherDashboard(props: {
                   </span>{" "}
                   Daftarkan Akun
                 </h3>
-<form action={registerStudent} className="flex flex-col gap-4" autoComplete="off">
+                  <form action={registerStudent} className="flex flex-col gap-4" autoComplete="off">
                   <input 
                     name="name" 
                     placeholder="Nama Panggilan" 
@@ -267,10 +268,11 @@ export default async function TeacherDashboard(props: {
                     existingClasses={Object.keys(studentsByClass)} 
                     customClass="w-full p-4 bg-emerald-50 text-emerald-900 rounded-2xl border-2 border-emerald-200 outline-none focus:border-emerald-500 font-black placeholder:text-emerald-500 transition-all"
                   />
-
-                  <button type="submit" className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-black text-lg hover:bg-emerald-600 shadow-[0_5px_0_rgb(5,150,105)] active:translate-y-1 active:shadow-none transition-all mt-4">
-                    BUAT AKUN
-                  </button>
+                  <SubmitButton 
+                    text="BUAT AKUN" 
+                    loadingText="Menyimpan..."
+                    className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-black text-lg hover:bg-emerald-600 shadow-[0_5px_0_rgb(5,150,105)] active:translate-y-1 active:shadow-none transition-all mt-4"
+                  />
                 </form>
               </div>
 

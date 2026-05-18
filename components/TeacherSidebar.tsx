@@ -1,23 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { logoutUser } from '@/app/actions';
+import SubmitButton from '@/components/SubmitButton'; // 👇 Panggil komponen Submit kita
 
 export default function TeacherSidebar({ activeTab, teacherName }: { activeTab: string, teacherName: string }) {
   const [isOpen, setIsOpen] = useState(false);
+  
+  // 👇 State baru untuk ngelacak tab mana yang lagi diklik/loading
+  const [loadingTab, setLoadingTab] = useState<string | null>(null);
+
+  // 👇 Kalau activeTab berubah (artinya halaman udah sukses pindah), matikan loading-nya
+  useEffect(() => {
+    setLoadingTab(null);
+  }, [activeTab]);
 
   const menuItems = [
     { id: 'vocab', label: 'Materi Hanzi', icon: '🀄', colorClass: 'sky' },
     { id: 'students', label: 'Data Murid', icon: '🐼', colorClass: 'emerald' },
-    { id: 'attendance', label: 'Absensi Harian', icon: '📅', colorClass: 'amber' }, // TAB BARU
+    { id: 'attendance', label: 'Absensi Harian', icon: '📅', colorClass: 'amber' },
     { id: 'report', label: 'Laporan Progress', icon: '📈', colorClass: 'purple' },
   ];
 
   return (
     <>
-      {/* HEADER MOBILE & BURGER ICON */}
-      {/* Posisi: sticky top-0 z-50 */}
+      {/* HEADER MOBILE */}
       <div className="md:hidden flex items-center justify-between bg-white p-5 border-b-2 border-slate-200 sticky top-0 z-50 shadow-sm">
         <div>
           <h2 className="text-2xl font-black text-sky-600 italic tracking-tight">Laoshi Panel.</h2>
@@ -37,23 +45,17 @@ export default function TeacherSidebar({ activeTab, teacherName }: { activeTab: 
         </button>
       </div>
 
-      {/* SIDEBAR DESKTOP & SLIDE MOBILE */}
-      {/* Posisi: fixed z-40 (meluncur DI BAWAH Header Mobile z-50) */}
-      <aside 
-        className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white border-r-2 border-slate-200 flex flex-col z-40 transition-transform transform ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} md:translate-x-0`}
-      >
-        {/* Logo/header desktop */}
+      {/* SIDEBAR */}
+      <aside className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white border-r-2 border-slate-200 flex flex-col z-40 transition-transform transform ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} md:translate-x-0`}>
         <div className="p-8 border-b-2 border-slate-100 hidden md:block">
           <h2 className="text-3xl font-black text-sky-600 italic tracking-tight">Laoshi Panel.</h2>
           <p className="text-slate-400 font-bold mt-1 text-sm truncate">Hi, {teacherName}</p>
         </div>
         
-        {/* Area Navigasi Menu */}
-        {/* MASALAH: Padding atas */}
-        {/* Tambahkan padding atas yang cukup besar untuk mobile */}
-        <nav className="flex-1 p-6 space-y-3 overflow-y-auto pt-28 md:pt-6"> {/* pt-28 (112px) untuk mobile, pt-6 untuk desktop */}
+        <nav className="flex-1 p-6 space-y-3 overflow-y-auto pt-28 md:pt-6">
           {menuItems.map(item => {
             const isActive = activeTab === item.id;
+            const isLoading = loadingTab === item.id; // Cek apakah tab ini yang lagi diklik
             
             let activeStyle = '';
             if (item.id === 'vocab') activeStyle = 'bg-sky-100 text-sky-700 border-sky-200 shadow-sm';
@@ -65,24 +67,51 @@ export default function TeacherSidebar({ activeTab, teacherName }: { activeTab: 
               <Link 
                 key={item.id}
                 href={`/teacher/dashboard?tab=${item.id}&name=${encodeURIComponent(teacherName)}`}
-                onClick={() => setIsOpen(false)} // Tutup otomatis di HP
-                className={`flex items-center gap-4 p-4 rounded-2xl font-bold transition-all border-2 ${isActive ? activeStyle : 'border-transparent text-slate-500 hover:bg-slate-50'}`}
+                onClick={(e) => {
+                  // MENCEGAH DOUBLE CLICK GLOBAL
+                  if (loadingTab) {
+                    e.preventDefault();
+                    return;
+                  }
+                  
+                  // Kalau ngeklik tab yang berbeda, nyalakan spinner loading
+                  if (!isActive) {
+                    setLoadingTab(item.id);
+                  }
+                  setIsOpen(false);
+                }}
+                // Bikin tombol lain mati kutu (pointer-events-none) pas ada yang lagi loading
+                className={`flex items-center gap-4 p-4 rounded-2xl font-bold transition-all border-2 
+                  ${isActive ? activeStyle : 'border-transparent text-slate-500 hover:bg-slate-50'}
+                  ${loadingTab && !isLoading ? 'opacity-50 pointer-events-none' : ''} 
+                `}
               >
-                <span className="text-2xl">{item.icon}</span> {item.label}
+                {/* 👇 Ganti Ikon jadi Muter kalau lagi Loading 👇 */}
+                {isLoading ? (
+                  <svg className="animate-spin h-6 w-6 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <span className="text-2xl">{item.icon}</span>
+                )}
+                
+                {item.label}
               </Link>
             )
           })}
         </nav>
 
-        {/* Tombol Logout */}
+        {/* 👇 FITUR KELUAR AKUN PAKAI SUBMIT BUTTON 👇 */}
         <form action={logoutUser} className="p-6 border-t-2 border-slate-100 bg-white">
-          <button type="submit" className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-red-50 text-red-500 font-bold hover:bg-red-100 transition-all w-full border border-red-100 cursor-pointer">
-            🚪 Keluar Akun
-          </button>
+          <SubmitButton 
+            text="🚪 Keluar Akun"
+            loadingText="Keluar..."
+            className="flex items-center justify-center gap-2 p-4 rounded-2xl bg-red-50 text-red-500 font-bold hover:bg-red-100 transition-all w-full border border-red-100"
+          />
         </form>
       </aside>
 
-      {/* OVERLAY GELAP UNTUK MOBILE */}
       {isOpen && (
         <div onClick={() => setIsOpen(false)} className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-30 md:hidden animate-in fade-in" />
       )}

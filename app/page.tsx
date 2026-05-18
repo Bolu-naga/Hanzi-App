@@ -1,6 +1,7 @@
 import { loginUser } from './actions';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import SubmitButton from '@/components/SubmitButton';
 
 interface LoginPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -15,18 +16,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   if (session) {
     try {
       const user = JSON.parse(session.value);
-      // Jangan langsung redirect di sini, tampung dulu URL-nya
       if (user.role === 'teacher') {
         bypassUrl = `/teacher/dashboard?tab=vocab&name=${encodeURIComponent(user.name)}`;
       } else {
         bypassUrl = `/sessions?name=${encodeURIComponent(user.name)}&studentId=${user.id}`;
       }
     } catch (e) {
-      // Abaikan kalau tiket rusak
     }
   }
 
-  // 2. JALANKAN REDIRECT DI LUAR TRY-CATCH
   if (bypassUrl !== '') {
     redirect(bypassUrl);
   }
@@ -71,9 +69,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               <label htmlFor="remember" className="text-sm font-bold text-slate-600 cursor-pointer select-none">Ingat saya di perangkat ini</label>
             </div>
 
-            <button type="submit" className="w-full py-5 bg-sky-500 text-white rounded-3xl font-black text-xl hover:bg-sky-600 shadow-[0_8px_0_rgb(2,132,199)] active:translate-y-2 active:shadow-none transition-all mt-4">
-              MASUK &rarr;
-            </button>
+            <SubmitButton 
+              text="MASUK SEKARANG" 
+              loadingText="Mengecek Data..."
+              className="w-full py-5 bg-sky-500 text-white rounded-3xl font-black text-xl hover:bg-sky-400 shadow-[0_6px_0_rgb(2,132,199)] active:translate-y-1 active:shadow-none transition-all mt-2 uppercase tracking-widest"
+            />
           </form>
         </div>
       </div>
